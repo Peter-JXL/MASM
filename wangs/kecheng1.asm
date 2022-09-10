@@ -1,5 +1,12 @@
 ; 课程设计1  任务：将实验7中的Power idea公司的数据按照图10.2所示的格式在屏幕上显示
-
+; 
+; 
+; 
+; 
+; 
+; 
+; 
+; 
 assume cs:codesg, ds:datasg, ss:stacksg
 
 datasg segment
@@ -23,5 +30,9 @@ start:	mov ax, datasg
 		
 		mov ax, 4c00h
 		int 21h
+		
+		; 将dword型数转变为表示十进制数的字符串，字符串以0为结尾符。
+dtoc:	push dx
+		push ax
 codesg ends
 end start
