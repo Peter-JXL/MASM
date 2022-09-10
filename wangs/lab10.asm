@@ -11,11 +11,17 @@ datasg segment
 	db 'Welcome to masm!',0
 datasg ends
 
-
+stacksg segment
+	db 20 dup(0)
+stacksg ends
 
 codesg segment
 start:	mov ax, datasg
 		mov ds, ax	;初始化数据段
+		
+		mov ax, stacksg
+		mov ss, ax 
+		mov sp, 20 ;初始化栈段
 		
 		mov dh, 8	; 第8行
 		mov dl, 3	; 第3列
@@ -25,7 +31,9 @@ start:	mov ax, datasg
 		mov ax, 4c00h
 		int 21h
 		
-show_str: 	push ax
+		
+show_str: 	;程序开始，先备份用到的寄存器内容
+			push ax
 			push es
 			push di
 			push si
@@ -62,6 +70,7 @@ show_str: 	push ax
 			add di,2		;显存指向下一个字符串
 			jmp short show
 			
+			;程序结束，恢复用到的寄存器内容
 	ok:		pop bp
 			pop si
 			pop di
