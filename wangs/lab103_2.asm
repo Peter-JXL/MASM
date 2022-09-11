@@ -56,7 +56,6 @@ dtoc:		push ax
 			call divdw						
 			add cx, 30h ; 转换余数为字符串
 			push cx		; 将字符串结果入栈
-			mov cx, ax
 			
 			mov cx, dx	; 将高位的商挪到cx，准备判断是否为0
 			jcxz axis0	; 如果是0，则判断ax是否为0

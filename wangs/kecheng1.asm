@@ -1,12 +1,5 @@
 ; 课程设计1  任务：将实验7中的Power idea公司的数据按照图10.2所示的格式在屏幕上显示
-; 
-; 
-; 
-; 
-; 
-; 
-; 
-; 
+
 assume cs:codesg, ds:datasg, ss:stacksg
 
 datasg segment
@@ -57,11 +50,11 @@ start:	mov ax, datasg
 		mov ds, ax
 		
 		mov cx, 21	; 循环21次展示字符串
-		mov dh, 5	; 第5行开始展示
-		mov dl, 1	; 第1列开始展示
+		mov dh, 5	; 从屏幕第5行开始展示
+		mov dl, 1	; 从屏幕第1列开始展示
 		mov si, 0 	; 指向table2的第一个字符串
-showline:	call show_str ; 
-		inc dh	;在下一行开始展示		
+showline:	call show_str ; 展示一行字符串
+		inc dh		; 在下一行开始展示		
 		add si, 24	; si指向下一行字符串
 		
 		loop showline
@@ -153,20 +146,26 @@ main:	push ds
 				
 				
 				; 开始转换收入
-				
-				
-				
-				
+				mov dx, [si+5]	; 将收入的前两位放到dx
+				mov ax, [si+7]	; 将收入的后两位放到ax
+				mov bx, 5		; 传参给dtoc子程序，从第5个字符串开始放
+				call dtoc	; 转换收入为字符串
 				
 				; 开始转换人数
-				
-				
-				
+				mov dx, 0
+				mov ax, [si+10]
+				mov bx, 13		; 传参给dtoc子程序，从第13个字符串开始放
+				call dtoc	; 转换收入为字符串		
 				
 				; 开始转换人均收入
+				mov dx, 0
+				mov ax, [si+13]
+				mov bx, 19 ; 传参给dtoc子程序，从第13个字符串开始放
+				call dtoc	; 转换人均收入为字符串		
 				
+				; 转换完毕，开始下一行转换
 				add si, 16	; si指向table的下一行		
-				add di, 24	; si指向table2的下一行
+				add di, 24	; di指向table2的下一行
 				loop main_loop
 		
 		pop di
@@ -181,26 +180,49 @@ main:	push ds
 		
 		
 		
-		; ------------子程序将dword型数转变为表示十进制数的字符串，字符串以0为结尾符。-----------------
-		; 参数：dx 放高位，ax放低位  es:di指向要存放的地址
-		; 返回：通过di输出到es
-dtoc:	push dx
-		push ax
-		push bx
-
+		; -------子程序将dword型数转变为ASCII，放到table2中，字符串以0为结尾符。--------
+		; 参数：dx 放高位，ax放低位  es:di指向要存放的地址, di指向某一行, bx指向要放到的位置
+		; 程序开始，备份用到的寄存器
+dtoc:		push ax
+			push cx
+			push bx
+			push si
+			push dx
+			push di
+			
+			; 由于求字符串是逆序求的，先取最后一位的字符串，然后是倒数第二个，因此用栈来存储，先push 0用作结尾。算完后依次出栈
+			mov cx, 0
+			push cx
+				
+	calc:	mov cx, 10 	; 用作除数	
+			call divdw						
+			add cx, 30h ; 转换余数为字符串
+			push cx		; 将字符串结果入栈
+			
+			mov cx, dx	; 将高位的商挪到cx，准备判断是否为0
+			jcxz axis0	; 如果是0，则判断ax是否为0
+			jmp calc	; 如果dx不是0，那么商一定不为0，继续计算
+	axis0:	mov cx, ax	; 将低位的商挪到cx，准备判断是否为0
+			jcxz outstack	; 如果是0，则说明dx和ax都为0，也就是商为0，转换完毕，
+			jmp calc	;如果ax不是0，则说明商一定不为0，继续计算
+			
+	outstack:	pop cx
+				jcxz dotcok			; 如果是0，则说明栈已经弹完了
+				mov es:[di+bx], cl  ;将字符串挪到table2段中
+				inc di
+				jmp short outstack
+			
+			; 转换完毕，恢复用到的寄存器			
+	dotcok:	pop di
+			pop dx
+			pop si
+			pop bx
+			pop cx
+			pop ax
+			ret
 		
-		mov cx, 10 ; 用作除数
-		call divdw
-		add cx, 30h ; 将余数转换为字符串
-		push cx		; 先暂存到栈
 		
-		pop bx
-		pop dx
-		pop ax 
-		ret
-		
-		
-		; -----------------子程序 被除数为dword型，除数为word型，结果为 dword 型。-------------
+; ;;;;;;;;;;;;;;;;;;;;;子程序 被除数为dword型，除数为word型，结果为 dword 型。;;;;;;;;;;;;;;;;;;;;;
 		; 参数： (ax)=dword型数据的低16位 (dx)=dword型数据的高16位  (cx)=除数
 		; 返回： (dx)=结果的高16位，(ax)=结果的低16位      (cx)=余数
 divdw:	push si
@@ -254,8 +276,8 @@ show_str: 	;程序开始，先备份用到的寄存器内容
 			mul ah		; 相乘后，ax存放了显存上要显示的列地址
 			mov di, ax	;di用来定位列
 			
-			;al存储属性字节
-			mov ah, 02H  
+			;al存储属性字节, 黑底白字
+			mov ah, 00000111B 
 			
 			; 开始显示字符串
 			mov ch,0
