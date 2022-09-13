@@ -9,12 +9,12 @@ data ends
 
 code segment
 start: 	mov 	ax,data
-	mov	ds, ax
-	mov	si, 0
+		mov	ds, ax
+		mov	si, 0
 
-	mov	ax,0b800h
-	mov	es, ax
-	mov	di,12*160
+		mov	ax,0b800h
+		mov	es, ax
+		mov	di,12*160
 
 S: 	cmp	byte ptr [si],0
 	je 	ok	;如果是。跳出循环
