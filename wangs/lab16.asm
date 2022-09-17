@@ -37,7 +37,7 @@ start:	;初始化栈段
 		mov di, 200h  
 		
 		; 开始复制代码到0:200
-		mov cx, offset setscreen - offset setscreenend
+		mov cx, offset setscreenend - offset setscreen
 		cld
 		rep movsb
 
@@ -45,8 +45,25 @@ start:	;初始化栈段
 		mov word ptr es:[7ch * 4], 200h	;偏移地址
 		mov word ptr es:[7ch * 4 + 2], 0	;段地址
 		
+		
 		; 测试1号子程序
-		mov ah, 1
+		mov ah, 0
+		call setscreen
+		
+		; 测试2号子程序
+;		mov ah, 1
+;		mov al, 1
+;		call setscreen
+		
+		; 测试2号子程序
+;		mov ah, 2
+;		mov al, 1
+;		call setscreen
+
+		; 测试4号子程序
+;		mov ah, 3
+;		mov al, 1
+;		call setscreen
 		
 		mov ax, 4c00h
 		int 21h
@@ -58,12 +75,13 @@ setscreen:	jmp short set
 			cmp ah, 3
 			ja sret
 			mov bl, ah
+			mov bh, 0
 			add bx, bx	; 由于table是字单元，计算偏移要*2， 例如sub2的地址是1*2
 			call word ptr table[bx]
 	sret:	pop bx
 			ret
 			
-;----------0号子程序，表示清屏------------------
+;----------1号子程序，表示清屏------------------
 	sub1:	push bx
 			push cx
 			push es
@@ -81,7 +99,7 @@ setscreen:	jmp short set
 			pop bx
 			ret
 	
-;----------1号子程序，表示设置前景色 用al传送颜色值------------------
+;----------2号子程序，表示设置前景色 用al传送颜色值------------------
 	sub2:	push bx
 			push cx
 			push es
@@ -100,7 +118,7 @@ setscreen:	jmp short set
 			pop bx
 			ret
 	
-;----------2号子程序，表示设置背景色 用al传送颜色值------------------			
+;----------3号子程序，表示设置背景色 用al传送颜色值------------------			
 	
 	sub3:	push bx
 			push cx
@@ -113,7 +131,7 @@ setscreen:	jmp short set
 			mov es, bx
 			mov bx, 1
 			mov cx,2000
-	sub3s:	and byte ptr es:[bx], 1000111b ; 背景色RGB先置为000
+	sub3s:	and byte ptr es:[bx], 10001111b ; 背景色RGB先置为000
 			or es:[bx], al  ; 设置背景色
 			add bx, 2
 			loop sub3s
@@ -123,7 +141,7 @@ setscreen:	jmp short set
 			pop bx
 			ret
 			
-;----------3号子程序，表示向上滚动一行------------------			
+;----------4号子程序，表示向上滚动一行------------------			
 			
 	sub4:	push cx
 			push si
@@ -142,7 +160,7 @@ setscreen:	jmp short set
 			mov cx, 160
 			rep movsb
 			pop cx
-			loop sub4
+			loop sub4s
 			
 			mov cx, 80
 			mov si, 0
@@ -156,6 +174,6 @@ setscreen:	jmp short set
 			pop si
 			pop cx
 			ret
-			
+setscreenend: nop			
 codesg ends
 end start

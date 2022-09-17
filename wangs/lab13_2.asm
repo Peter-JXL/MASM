@@ -14,7 +14,7 @@ start:	mov ax, 0b800h
 		mov es, ax
 		mov di, 160*12
 		
-		mov bx, offset s - offset se 	;设置从标号se到标号s的转移位移
+		mov bx, offset se - offset s 	;设置从标号se到标号s的转移位移
 		mov cx, 80
 		
 s:		mov byte ptr es:[di], '!'
